@@ -1,0 +1,68 @@
+from collections import defaultdict
+import re
+import time
+from threading import Timer
+
+def undoim(bot, channel):
+	bot.usermode(channel, channel, '-im')
+
+class timeduser(object):
+	def __init__(self, username):
+		self.timestamp = int(time.time() - 180)
+		self.username = username
+
+	def isold(self):
+		if self.timestamp < int(time.time() - 180):
+			return True
+		return False
+
+	def __repr__(self):
+		return '<%s - %s>' % (self.timestamp, self.username)
+
+	__str__ = __repr__
+
+class chancounter(object):
+	def __init__(self, umax=5):
+		self.chans = defaultdict(list)
+		self.umax = umax
+
+	def add(self, channel, username):
+		self.chans[channel].append(timeduser(username))
+
+		for x in self.chans[channel]:
+			if x.isold():
+				self.chans[channel].remove(x)
+	def _test(self, channel):
+		for x in self.chans[channel]:
+			if not x.isold():
+				yield x
+
+	def test(self, channel):
+		n = list(self._test(channel))
+		if len(n) > self.umax:
+			return n
+
+	def __repr__(self):
+		from pprint import pformat
+		return pformat(self.chans.items(), indent=4)
+
+
+cnt = chancounter(2)
+
+def handle_join(bot, nick, channel):
+	n_re = re.compile('(.+)!(.+)@(.+)')
+	n_re_match = n_re.match(nick)
+	now = time.time()
+	if n_re_match:
+		print n_re_match.groups()
+		cnt.add(channel, n_re_match.groups()[0])
+
+		tst = cnt.test(channel)
+		if tst:
+			bot.usermode(channel, channel, '+im')
+			t = Timer(30.0, undoim, [bot, channel])
+			t.start()
+			for usr in tst:
+				bot.kick(channel, usr.username, 'Excess joins. Please try again later')
+
+	print cnt
