@@ -34,7 +34,7 @@ def t():
 
 def try_info(host, port=25565):
 	try:
-		return "[\x02%s\x02: %s]" % (host, get_info(host)['players']['online'])
+		return "[%s: %s]" % (host, get_info(host)['players']['online'])
 	except Exception as e:
 		print e
 		return "Error contacting " + host + t()
@@ -48,7 +48,7 @@ def try_players(host, port=25565):
 			msg = ", and %d more..." % (total - shown)
 		else:
 			msg = ""
-		return "[\x02%s\x02: %s%s]" % (host, ', '.join([x['name'] for x in info['players']['sample']]), msg)
+		return "[%s: %s%s]" % (host, ', '.join([x['name'] for x in info['players']['sample']]), msg)
 	except Exception as e:
 		print e
 		return "Error contacting " + host + t()
