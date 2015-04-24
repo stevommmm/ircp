@@ -9,7 +9,6 @@ from pl import *
 
 
 def daemonize():
-	return
 	try: 
 		pid = os.fork() 
 		if pid > 0:
